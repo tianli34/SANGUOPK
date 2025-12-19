@@ -1,0 +1,172 @@
+# Implementation Plan
+
+- [ ] 1. Set up project structure and constants
+
+
+
+
+  - Create directory structure: `src/`, `tests/`
+  - Create `src/constants.py` with all global constants (MAX_HP, MAX_SP, AP_LIMIT, etc.)
+  - Create `src/enums.py` with DefenseType enum
+  - Set up pytest and hypothesis in requirements.txt
+  - _Requirements: 1.1, 1.2_
+
+- [ ] 2. Implement Warrior class
+  - [ ] 2.1 Create Warrior dataclass with attributes and state
+    - Implement five core attributes (martial_arts, agility, strength, courage, stamina_max)
+    - Implement runtime states (hp, sp, ap, is_alive)
+    - Implement `get_attack_speed()` method
+    - Implement `take_damage()`, `consume_sp()`, `modify_courage()`, `reset_ap()` methods
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 10.1_
+  - [ ]* 2.2 Write property test for warrior initialization
+    - **Property 1: Warrior Initialization Invariants**
+    - **Validates: Requirements 1.2**
+  - [ ]* 2.3 Write property test for attack speed formula
+    - **Property 2: Attack Speed Formula Correctness**
+    - **Validates: Requirements 1.3**
+  - [ ]* 2.4 Write property test for death state transition
+    - **Property 3: Death State Transition**
+    - **Validates: Requirements 1.4**
+  - [ ]* 2.5 Write property test for courage clamping
+    - **Property 20: Courage Clamping**
+    - **Validates: Requirements 10.1**
+
+- [ ] 3. Implement DamageSystem
+  - [ ] 3.1 Create DamageSystem class with calculation methods
+    - Implement `calculate_attack_power()` method
+    - Implement `calculate_defense_power()` method
+    - Implement `calculate_base_damage()` method
+    - Implement `calculate_final_damage()` with multipliers and random factor
+    - Implement `calculate_block_damage()` for block mechanics
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
+  - [ ]* 3.2 Write property test for damage formulas
+    - **Property 13: Damage Calculation Formulas**
+    - **Validates: Requirements 6.1, 6.2, 6.3, 6.4**
+  - [ ]* 3.3 Write property test for damage multipliers
+    - **Property 14: Damage Multiplier Conditions**
+    - **Validates: Requirements 6.5, 6.6**
+  - [ ]* 3.4 Write property test for final damage range
+    - **Property 15: Final Damage Range**
+    - **Validates: Requirements 6.7**
+
+- [ ] 4. Implement DefenseSystem
+  - [ ] 4.1 Create DefenseSystem class with weight calculations
+    - Implement `calculate_block_weight()`, `calculate_parry_weight()`, `calculate_dodge_weight()`, `calculate_counter_weight()`
+    - Implement `select_defense()` to choose highest weight
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+  - [ ] 4.2 Implement success rate calculations
+    - Implement `calculate_parry_success_rate()` with clamping
+    - Implement `calculate_dodge_success_rate()` with clamping
+    - Implement `calculate_counter_success_rate()` with composite calculations
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+  - [ ] 4.3 Implement defense result processing
+    - Implement `apply_block_result()` with impact force and recoil
+    - Implement `apply_defense_result()` for parry/dodge/counter success/fail
+    - Create DefenseResult dataclass
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10_
+  - [ ]* 4.4 Write property test for defense weights
+    - **Property 7: Defense Weight Formulas**
+    - **Validates: Requirements 3.2, 3.3, 3.4, 3.5**
+  - [ ]* 4.5 Write property test for defense selection
+    - **Property 8: Defense Selection - Highest Weight**
+    - **Validates: Requirements 3.6**
+  - [ ]* 4.6 Write property test for success rates
+    - **Property 9: Success Rate Formulas with Clamping**
+    - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5**
+  - [ ]* 4.7 Write property test for block damage
+    - **Property 10: Block Damage Calculation**
+    - **Validates: Requirements 5.1, 5.2, 5.3, 5.4**
+  - [ ]* 4.8 Write property test for successful defense effects
+    - **Property 11: Successful Defense Effects**
+    - **Validates: Requirements 5.5, 5.6, 5.7**
+  - [ ]* 4.9 Write property test for failed defense penalties
+    - **Property 12: Failed Defense Penalties**
+    - **Validates: Requirements 5.8, 5.9, 5.10**
+
+- [ ] 5. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 6. Implement ClashSystem
+  - [ ] 6.1 Create ClashSystem class
+    - Implement `check_clash()` to detect clash conditions (AP difference <= 20)
+    - Implement `calculate_clash_damage()` with impact force formula
+    - Implement `execute_clash()` to process mutual damage and SP cost
+    - Create ClashResult dataclass
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [ ]* 6.2 Write property test for clash detection
+    - **Property 16: Clash Detection**
+    - **Validates: Requirements 7.1**
+  - [ ]* 6.3 Write property test for clash damage
+    - **Property 17: Clash Damage Calculation**
+    - **Validates: Requirements 7.2, 7.3, 7.4, 7.5**
+
+- [ ] 7. Implement BattleEngine
+  - [ ] 7.1 Create BattleEngine class with tick system
+    - Implement constructor with team_a and team_b lists
+    - Implement `run_tick()` with AP accumulation for alive warriors
+    - Implement `get_ready_warriors()` to find warriors with AP >= AP_LIMIT
+    - _Requirements: 2.1, 2.2_
+  - [ ] 7.2 Implement target selection and attack execution
+    - Implement `select_target()` to find lowest HP enemy
+    - Implement `execute_attack()` integrating DefenseSystem and DamageSystem
+    - Reset attacker AP after attack
+    - _Requirements: 2.3, 2.4_
+  - [ ] 7.3 Implement round tracking
+    - Track attack count and alive warrior count
+    - Implement round completion logic
+    - Increment round counter and reset attack counter
+    - _Requirements: 8.1, 8.3_
+  - [ ] 7.4 Implement battle end conditions
+    - Implement `check_battle_end()` for team elimination
+    - Implement draw detection for simultaneous deaths
+    - Implement timeout logic with HP percentage comparison
+    - Create BattleResult dataclass
+    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+  - [ ] 7.5 Implement main battle loop
+    - Implement `run_battle()` to orchestrate full battle
+    - Integrate clash detection before normal attacks
+    - Return BattleResult on completion
+    - _Requirements: 2.1, 2.2, 7.1, 7.2_
+  - [ ]* 7.6 Write property test for AP accumulation
+    - **Property 4: AP Accumulation Per Tick**
+    - **Validates: Requirements 2.1**
+  - [ ]* 7.7 Write property test for AP reset
+    - **Property 5: AP Reset After Attack**
+    - **Validates: Requirements 2.3**
+  - [ ]* 7.8 Write property test for target selection
+    - **Property 6: Target Selection - Lowest HP Priority**
+    - **Validates: Requirements 2.4**
+  - [ ]* 7.9 Write property test for round completion
+    - **Property 18: Round Completion Logic**
+    - **Validates: Requirements 8.1, 8.3**
+  - [ ]* 7.10 Write property test for battle end determination
+    - **Property 19: Battle End Determination**
+    - **Validates: Requirements 9.1, 9.2, 9.3, 9.4**
+
+- [ ] 8. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 9. Implement Serialization
+  - [ ] 9.1 Create serialization functions
+    - Implement `serialize_warrior()` to convert Warrior to dict
+    - Implement `deserialize_warrior()` to restore Warrior from dict
+    - Implement `serialize_battle_state()` for full battle state
+    - Implement `deserialize_battle_state()` to restore battle state
+    - _Requirements: 11.1, 11.2, 11.3_
+  - [ ]* 9.2 Write property test for serialization round-trip
+    - **Property 21: Battle State Serialization Round-Trip**
+    - **Validates: Requirements 11.1, 11.2, 11.3**
+
+- [ ] 10. Integration and battle simulation
+  - [ ] 10.1 Create main entry point
+    - Create `src/main.py` with sample battle setup
+    - Implement battle logging/output
+    - Add command-line interface for running battles
+    - _Requirements: All_
+  - [ ]* 10.2 Write integration tests
+    - Test complete battle flow with predefined warriors
+    - Verify battle terminates correctly
+    - Test edge cases (1v1, 5v5, unbalanced teams)
+
+- [ ] 11. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

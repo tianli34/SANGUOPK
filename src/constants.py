@@ -1,0 +1,68 @@
+# 武将对决系统全局常量
+
+# 生命值与体力值
+MAX_HP = 10000      # 最大生命值
+SP_EXPANSION_FACTOR = 50  # 体力膨胀系数
+
+# 行动点数
+AP_LIMIT = 500     # 行动点数阈值
+TICK_RATE = 0.05   # 时间流逝速率
+
+# 拼刀系统
+CLASH_AP_THRESHOLD = 20  # 拼刀AP差值阈值
+
+# 格挡系统
+BLOCK_K = 0.5  # 格挡冲击力系数
+
+# 体力消耗
+BASE_SP_COST = 5    # 基础体力消耗
+
+# 胆气系统
+COURAGE_CAP = 120   # 胆气上限值
+
+# 伤害计算
+RECOIL_CAP_RATIO = 0.5   # 反震伤害上限比例
+ARMOR_PENETRATION = 1.0  # 破甲系数
+
+# 战斗规则
+MAX_ROUNDS = 300    # 最大回合数
+
+# 防御参数
+DEFENSE_PARAMS = {
+    "block": {       # 格挡
+        "base_rate": 0.70,         # 基础成功率
+        "rate_factor": 0.01,       # 属性差异系数
+        "impact_k": 0.5,           # 冲击力系数
+        "success_damage_mult": 0.3,  # 成功伤害倍率
+        "fail_damage_mult": 3.0,     # 失败伤害倍率
+        "recoil_mult": 0.3,          # 反震倍率
+        "sp_cost_ratio": 0.5         # 体力消耗比例
+    },
+    "parry": {      # 卸力
+        "base_rate": 0.50,         # 基础成功率
+        "rate_factor": 0.01,      # 属性差异系数
+        "success_sp_cost": 5,      # 成功体力消耗
+        "success_courage": 20,     # 成功胆气变化
+        "fail_sp_cost": 20,        # 失败体力消耗
+        "fail_courage": -20,       # 失败胆气变化
+        "fail_damage_mult": 1.0    # 失败伤害倍率
+    },
+    "dodge": {       # 闪避
+        "base_rate": 0.40,         # 基础成功率
+        "rate_factor": 0.01,       # 属性差异系数
+        "success_sp_cost": 12,     # 成功体力消耗
+        "success_courage": 30,     # 成功胆气变化
+        "fail_sp_cost": 25,        # 失败体力消耗
+        "fail_courage": -30,       # 失败胆气变化
+        "fail_damage_mult": 1.2    # 失败伤害倍率
+    },
+    "counter": {     # 反击
+        "base_rate": 0.60,         # 基础成功率
+        "rate_factor": 0.01,       # 属性差异系数
+        "success_sp_cost": 20,     # 成功体力消耗
+        "success_courage": 40,     # 成功胆气变化
+        "fail_sp_cost": 20,        # 失败体力消耗
+        "fail_courage": 0,         # 失败胆气变化
+        "fail_damage_mult":0.8     # 失败伤害倍率
+    }
+}
