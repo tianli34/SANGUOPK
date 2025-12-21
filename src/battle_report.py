@@ -1,3 +1,5 @@
+# 文件名: battle_report.py
+# 用途: 战报输出模块，负责将战斗统计数据格式化并渲染为可读的文本报告
 "战报输出模块 - 负责将统计数据渲染为文本报告"
 
 from typing import List, TYPE_CHECKING
@@ -116,6 +118,7 @@ class BattleReporter:
         defender = details.get("defender", "未知")
         defense = details.get("defense", "block")
         success = details.get("success", False)
+        defense_rate = details.get("defense_rate")
 
         defense_cn = DEFENSE_TYPE_CN.get(defense, defense)
         success_text = "成功" if success else "失败"
@@ -123,6 +126,8 @@ class BattleReporter:
         lines = []
         lines.append(f"\n  ⚔ {attacker} → {defender}")
         lines.append(f"    防御方式: {defense_cn}")
+        if defense_rate is not None:
+            lines.append(f"    成功率: {defense_rate * 100:.1f}%")
         lines.append(f"    判定结果: {success_text}")
 
         changes = []

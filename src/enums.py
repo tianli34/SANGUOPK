@@ -1,3 +1,5 @@
+# 文件名: enums.py
+# 用途: 枚举类型定义文件，定义战斗系统中使用的各类枚举常量
 from enum import Enum
 
 

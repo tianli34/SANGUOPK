@@ -1,4 +1,5 @@
-# 武将对决系统
+# 文件名: __init__.py
+# 用途: 武将对决系统的包初始化文件，导出核心类、函数和常量供外部使用
 
 from src.warrior import Warrior
 from src.battle_engine import BattleEngine, BattleResult, BattleOutcome

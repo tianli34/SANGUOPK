@@ -1,3 +1,5 @@
+# 文件名: battle_statistics.py
+# 用途: 战斗数据统计模块，负责从战斗日志中提取、分析和汇总各类战斗数据
 """战斗数据统计模块 - 负责从战斗日志中提取和汇总数据"""
 
 from typing import List, Dict, TYPE_CHECKING

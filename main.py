@@ -1,3 +1,5 @@
+# 文件名: main.py
+# 用途: 程序主入口文件，运行武将对决模拟并生成战斗报告
 """示例战斗模拟 - 100次单挑统计"""
 
 from src import Warrior, BattleEngine
@@ -20,7 +22,7 @@ def create_warrior_b():
 
 def main():
     """运行单挑模拟"""
-    num_battles = 100
+    num_battles = 1
 
     print(f"三国武将对决系统 - {num_battles}场单挑模拟")
     print("=" * 70)

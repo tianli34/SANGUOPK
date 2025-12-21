@@ -1,3 +1,5 @@
+# 文件名: defense.py
+# 用途: 防御系统模块，处理格挡、卸力、闪避、反击等防御动作的判定和结果计算
 """对决防御系统"""
 
 import random
@@ -32,7 +34,7 @@ def calculate_defense_rate(defense_type: DefenseType, defender: "Warrior", attac
     ap_percent = defender.ap_percent
 
     if defense_type == DefenseType.BLOCK:
-        diff = (defender.strength * 0.7 + defender.agility * 0.3) * defender.sp_percent - attacker.strength * attacker.sp_percent
+        diff = defender.strength * 0.7 + defender.agility * 0.3 - attacker.strength
 
         rate = (params["base_rate"] + diff * params["rate_factor"]) * min(1.0, ap_percent / 0.25)
 
@@ -75,9 +77,11 @@ def process_block(defender: "Warrior", attacker: "Warrior") -> DefenseResult:
     if success:
         defender_damage = original_defender_damage * params["success_damage_mult"]
         recoil_damage = original_recoil_damage
+        courage_change = 10
     else:
         defender_damage = original_defender_damage * params["fail_damage_mult"]
         recoil_damage = 0.0
+        courage_change = -30
 
     # 双方体力消耗 = 受伤值 × sp_cost_ratio
     defender_sp_cost = defender_damage * params["sp_cost_ratio"]
@@ -90,7 +94,7 @@ def process_block(defender: "Warrior", attacker: "Warrior") -> DefenseResult:
         damage_to_attacker=recoil_damage,
         defender_sp_cost=defender_sp_cost,
         attacker_sp_cost=attacker_sp_cost,
-        defender_courage_change=0,
+        defender_courage_change=courage_change,
         damage_multiplier=params["success_damage_mult"] if success else params["fail_damage_mult"],
     )
 

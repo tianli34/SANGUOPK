@@ -1,4 +1,5 @@
-# 武将对决系统全局常量
+# 文件名: constants.py
+# 用途: 全局常量定义文件，存储战斗系统中使用的各类数值参数和配置常量
 
 # 生命值与体力值
 HP_COEFFICIENT = 2  # HP系数
@@ -26,6 +27,7 @@ ARMOR_PENETRATION = 1.0  # 破甲系数
 
 # 战斗规则
 MAX_ROUNDS = 300  # 最大回合数
+MAX_TICKS = 10000  # 最大时间刻度（防止无限循环）
 
 # 防御参数
 DEFENSE_PARAMS = {
@@ -36,32 +38,32 @@ DEFENSE_PARAMS = {
         "success_damage_mult": 0.3,  # 成功伤害倍率
         "fail_damage_mult": 3.0,  # 失败伤害倍率
         "recoil_mult": 0.3,  # 反震倍率
-        "sp_cost_ratio": 0.5,  # 体力消耗比例
+        "sp_cost_ratio": 0.3,  # 体力消耗比例
     },
     "parry": {  # 卸力
         "base_rate": 0.50,  # 基础成功率
         "rate_factor": 0.01,  # 属性差异系数
-        "success_sp_cost": 5,  # 成功体力消耗
+        "success_sp_cost": 10,  # 成功体力消耗
         "success_courage": 20,  # 成功胆气变化
         "fail_sp_cost": 20,  # 失败体力消耗
-        "fail_courage": -20,  # 失败胆气变化
+        "fail_courage": -10,  # 失败胆气变化
         "fail_damage_mult": 1.0,  # 失败伤害倍率
     },
     "dodge": {  # 闪避
         "base_rate": 0.40,  # 基础成功率
         "rate_factor": 0.01,  # 属性差异系数
-        "success_sp_cost": 12,  # 成功体力消耗
+        "success_sp_cost": 20,  # 成功体力消耗
         "success_courage": 30,  # 成功胆气变化
-        "fail_sp_cost": 25,  # 失败体力消耗
-        "fail_courage": -30,  # 失败胆气变化
+        "fail_sp_cost": 40,  # 失败体力消耗
+        "fail_courage": -15,  # 失败胆气变化
         "fail_damage_mult": 1.2,  # 失败伤害倍率
     },
     "counter": {  # 反击
         "base_rate": 0.60,  # 基础成功率
         "rate_factor": 0.01,  # 属性差异系数
-        "success_sp_cost": 20,  # 成功体力消耗
+        "success_sp_cost": 30,  # 成功体力消耗
         "success_courage": 40,  # 成功胆气变化
-        "fail_sp_cost": 20,  # 失败体力消耗
+        "fail_sp_cost": 50,  # 失败体力消耗
         "fail_courage": 0,  # 失败胆气变化
         "fail_damage_mult": 0.8,  # 失败伤害倍率
     },

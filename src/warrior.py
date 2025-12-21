@@ -1,5 +1,7 @@
+# 文件名: warrior.py
+# 用途: 武将类定义文件，包含武将的属性、状态管理和AI决策逻辑
 """武将对决系统的武将类"""
-
+import math
 import random
 from dataclasses import dataclass
 from src.constants import (
@@ -26,7 +28,7 @@ class WarriorSnapshot:
     # 基础属性
     martial_arts: int
     agility: int
-    strength: int
+    strength: float
     # 衍生属性
     attack_power: float
     defense_power: float
@@ -42,26 +44,26 @@ class Warrior:
         team: str,
         martial_arts: int = 50,
         agility: int = 50,
-        strength: int = 50,
+        strength: float = 50.0,
         courage: int = 50,
         sp: int = 50,
     ):
         self.name = name
         self.team = team
 
-        # 基础属性(四维属性)
-        self.martial_arts = martial_arts  # 武艺
-        self.agility = agility  # 敏捷
-        self.strength = strength  # 力量
-        self.courage = courage  # 胆气
-
-        # 运行时状态
+        # 初始化武将的运行时状态
         self.sp_max = sp * SP_EXPANSION_FACTOR  # 体力上限
+        self.sp = self.sp_max  # 当前体力
         self.hp_max = self.sp_max * HP_COEFFICIENT  # 最大生命值
         self.hp = self.hp_max  # 当前生命值
-        self.sp = sp * SP_EXPANSION_FACTOR  # 当前体力
         self.ap = 0.0  # 行动点数
         self.is_alive = True  # 存活状态
+
+        # 初始化武将的运行时状态_基础属性(四维属性)
+        self.martial_arts = martial_arts  # 武艺
+        self.agility = agility  # 敏捷
+        self.init_strength = strength  # 初始力量
+        self.courage = courage  # 胆气
 
     def snapshot(self) -> WarriorSnapshot:
         """获取武将当前状态快照"""
@@ -83,15 +85,20 @@ class Warrior:
         )
 
     @property
+    def strength(self) -> float:
+        """根据体力百分比动态计算力量,每次都要基于初始力量和当前体力计算当前力量"""
+        return self.init_strength * math.sqrt(self.sp_percent)
+
+    @property
     def attack_speed(self) -> float:
         """根据敏捷和体力比例计算攻击速度"""
-        sp_ratio = min(1.0, (self.sp / self.sp_max) / 0.5)
+        sp_ratio = min(1.0, (self.sp_percent) / 0.5)
         return (100 + self.agility * 2) * sp_ratio
 
     @property
     def attack_power(self) -> float:
-        """计算攻击力: 力量×1.5 + 武艺×0.5"""
-        return self.strength * 1.5 + self.martial_arts * 0.5
+        """计算攻击力: 力量×1 + 武艺×0.5"""
+        return self.strength * 1 + self.martial_arts * 0.5
 
     @property
     def defense_power(self) -> float:

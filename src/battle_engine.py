@@ -1,10 +1,12 @@
+# 文件名: battle_engine.py
+# 用途: 战斗引擎核心模块，负责管理战斗流程、回合控制、攻击判定和战斗结果输出
 """武将对决系统的战斗引擎"""
 
 from dataclasses import dataclass, field
 from typing import List, Optional
 from enum import Enum
 
-from src.constants import TICK_RATE, MAX_ROUNDS
+from src.constants import TICK_RATE, MAX_ROUNDS, MAX_TICKS
 from src.warrior import Warrior
 from src.defense import process_defense
 from src.damage import calculate_final_damage
@@ -151,7 +153,8 @@ class BattleEngine:
 
     def _check_timeout(self) -> Optional[BattleResult]:
         """检查超时并根据生命值百分比决定胜者"""
-        if self.round_count < MAX_ROUNDS:
+        # 优先检查时间刻度超时（防止无限循环）
+        if self.tick_count < MAX_TICKS and self.round_count < MAX_ROUNDS:
             return None
 
         alive_a = self._get_alive("A")
@@ -224,6 +227,10 @@ class BattleEngine:
         defense_type = target.choose_defense()
         base_damage = calculate_final_damage(attacker, target)
 
+        # 计算防御成功率
+        from src.defense import calculate_defense_rate
+        defense_rate = calculate_defense_rate(defense_type, target, attacker)
+
         # 处理防御
         result = process_defense(defense_type, target, attacker, base_damage)
 
@@ -234,7 +241,7 @@ class BattleEngine:
             attacker.take_damage(result.damage_to_attacker)
 
         target.consume_sp(result.defender_sp_cost)
-        attacker.consume_sp(result.attacker_sp_cost)
+        attacker.consume_sp(result.attacker_sp_cost + 10)  # 每次攻击额外消耗10点SP
         target.modify_courage(result.defender_courage_change)
 
         # 记录攻击日志（包含详细状态变化）
@@ -245,10 +252,11 @@ class BattleEngine:
             defender=target.name,
             defense=defense_type.value,
             success=result.success,
+            defense_rate=defense_rate,  # 记录防御成功率
             damage_to_defender=result.damage_to_defender,
             damage_to_attacker=result.damage_to_attacker,
             defender_sp_cost=result.defender_sp_cost,
-            attacker_sp_cost=result.attacker_sp_cost,
+            attacker_sp_cost=result.attacker_sp_cost + 10,  # 包含额外的10点SP消耗
             defender_courage_change=result.defender_courage_change,
             # 状态变化记录
             attacker_hp_before=attacker_hp_before,
