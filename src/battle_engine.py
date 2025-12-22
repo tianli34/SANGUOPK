@@ -60,6 +60,7 @@ class BattleEngine:
         self.round_count = 0  # 回合计数器
         self.attack_count = 0  # 攻击次数计数器
         self.logs: List[BattleLog] = []  # 战斗日志
+        self.last_attack_tick = {}  # 记录每个武将上次攻击的tick
 
         self._validate_teams()
 
@@ -161,8 +162,8 @@ class BattleEngine:
         alive_b = self._get_alive("B")
 
         # 计算生命值百分比
-        total_max_a = sum(w.hp_max for w in self.team_a)
-        total_max_b = sum(w.hp_max for w in self.team_b)
+        total_max_a = sum(w.hp_real for w in self.team_a)
+        total_max_b = sum(w.hp_real for w in self.team_b)
 
         current_hp_a = sum(w.hp for w in alive_a)
         current_hp_b = sum(w.hp for w in alive_b)
@@ -222,6 +223,7 @@ class BattleEngine:
         target_hp_before = target.hp
         target_sp_before = target.sp
         target_courage_before = target.courage
+        target_ap_percent = target.ap_percent  # 记录防守方AP百分比
 
         # 防守方选择防御方式
         defense_type = target.choose_defense()
@@ -244,6 +246,10 @@ class BattleEngine:
         attacker.consume_sp(result.attacker_sp_cost + 10)  # 每次攻击额外消耗10点SP
         target.modify_courage(result.defender_courage_change)
 
+        # 计算攻击间隔（第一次攻击间隔为从战斗开始到现在）
+        attack_interval_ticks = self.tick_count - self.last_attack_tick.get(attacker.name, 0)
+        self.last_attack_tick[attacker.name] = self.tick_count
+
         # 记录攻击日志（包含详细状态变化）
         self._log(
             "attack",
@@ -253,6 +259,8 @@ class BattleEngine:
             defense=defense_type.value,
             success=result.success,
             defense_rate=defense_rate,  # 记录防御成功率
+            defender_ap_percent=target_ap_percent,  # 记录防守方AP百分比
+            attack_interval_ticks=attack_interval_ticks,  # 记录攻击间隔
             damage_to_defender=result.damage_to_defender,
             damage_to_attacker=result.damage_to_attacker,
             defender_sp_cost=result.defender_sp_cost,

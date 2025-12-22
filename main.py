@@ -9,14 +9,14 @@ from src.battle_report import AggregateReporter
 def create_warrior_a():
     """创建A队武将"""
     return Warrior(
-        "马超", "A", martial_arts=98, agility=95, strength=92, courage=94, sp=98
+        "马超", "A", martialarts=98, agility=95, strength=92, courage=94, sp=98
     )
 
 
 def create_warrior_b():
     """创建B队武将"""
     return Warrior(
-        "许褚", "B", martial_arts=95, agility=80, strength=99, courage=96, sp=100
+        "许褚", "B", martialarts=95, agility=80, strength=99, courage=96, sp=100
     )
 
 

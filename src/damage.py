@@ -34,11 +34,11 @@ def calculate_damage_multiplier(
     """
     multiplier = base_multiplier
 
-    if defender.sp_percent < 0.2:
-        multiplier *= 1.5
+    # if defender.sp_percent < 0.2:
+    #     multiplier *= 1.5
 
     if attacker.courage > 80 and defender.courage < 30:
-        multiplier *= 1.2
+        multiplier *= 1.5
 
     return multiplier
 
@@ -48,7 +48,7 @@ def calculate_final_damage(
 ) -> float:
     """
     计算包含所有修饰符的最终伤害
-    最终伤害 = (物理伤害 + 基础冲击) × 倍率 × 随机浮动(0.95~1.05)
+    最终伤害 = 基础伤害× 倍率 × 随机浮动(0.95~1.05)
     """
     base = calculate_base_damage(attacker, defender)
     multiplier = calculate_damage_multiplier(attacker, defender, base_multiplier)

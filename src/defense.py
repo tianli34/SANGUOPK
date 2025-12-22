@@ -35,20 +35,19 @@ def calculate_defense_rate(defense_type: DefenseType, defender: "Warrior", attac
 
     if defense_type == DefenseType.BLOCK:
         diff = defender.strength * 0.7 + defender.agility * 0.3 - attacker.strength
-
         rate = (params["base_rate"] + diff * params["rate_factor"]) * min(1.0, ap_percent / 0.25)
 
     elif defense_type == DefenseType.PARRY:
-        diff = defender.martial_arts - attacker.strength
+        diff = defender.martialarts - attacker.strength
         rate = (params["base_rate"] + diff * params["rate_factor"]) * (ratio**3 if (ratio := ap_percent / 0.8) > 1 else ratio)
 
     elif defense_type == DefenseType.DODGE:
-        diff = defender.agility - attacker.martial_arts
-        rate = (params["base_rate"] + diff * params["rate_factor"]) * min(1.0, ap_percent / 0.5)
+        diff = defender.agility*1.5 - attacker.martialarts
+        rate = params["base_rate"] + diff * params["rate_factor"]+ap_percent
 
     elif defense_type == DefenseType.COUNTER:
-        defender_composite = defender.martial_arts * 0.45 + defender.agility * 0.45 + defender.courage * 0.1
-        attacker_composite = attacker.agility * 0.50 + attacker.martial_arts * 0.40 + attacker.courage * 0.1
+        defender_composite = defender.martialarts * 0.45 + defender.agility * 0.45 + defender.courage * 0.1
+        attacker_composite = attacker.agility * 0.50 + attacker.martialarts * 0.40 + attacker.courage * 0.1
         diff = defender_composite - attacker_composite
         rate = (params["base_rate"] + diff * params["rate_factor"]) * ap_percent
     else:

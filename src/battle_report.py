@@ -16,13 +16,13 @@ def format_warrior_initial_stats(snapshot: WarriorSnapshot) -> str:
     from src.constants import SP_EXPANSION_FACTOR
 
     # 直接从快照获取计算属性，避免逻辑重复
-    sp_display = snapshot.sp_max / SP_EXPANSION_FACTOR
+    sp_display = snapshot.sp_real / SP_EXPANSION_FACTOR
 
     return (
         f"  【{snapshot.name}】\n"
-        f"    四维属性: 武艺={snapshot.martial_arts} 敏捷={snapshot.agility} "
+        f"    四维属性: 武艺={snapshot.martialarts} 敏捷={snapshot.agility} "
         f"力量={snapshot.strength} 胆气={snapshot.courage} 体力={sp_display:.0f}\n"
-        f"    战斗属性: HP={snapshot.hp:.0f} SP={snapshot.sp:.0f}/{snapshot.sp_max}\n"
+        f"    战斗属性: HP={snapshot.hp:.0f} SP={snapshot.sp:.0f}/{snapshot.sp_real}\n"
         f"    计算属性: 攻击力={snapshot.attack_power:.1f} 防御力={snapshot.defense_power:.1f} "
         f"攻速={snapshot.attack_speed:.1f}"
     )
@@ -33,8 +33,8 @@ def format_warrior_current_stats(warrior: "Warrior") -> str:
     status = "阵亡" if not warrior.is_alive else "存活"
     return (
         f"  【{warrior.name}】[{status}]\n"
-        f"    HP={warrior.hp:.0f}/{warrior.hp_max:.0f} ({warrior.hp_percent * 100:.1f}%)\n"
-        f"    SP={warrior.sp:.0f}/{warrior.sp_max} ({warrior.sp_percent * 100:.1f}%)\n"
+        f"    HP={warrior.hp:.0f}/{warrior.hp_real:.0f} ({warrior.hp_percent * 100:.1f}%)\n"
+        f"    SP={warrior.sp:.0f}/{warrior.sp_real} ({warrior.sp_percent * 100:.1f}%)\n"
         f"    胆气={warrior.courage}"
     )
 
@@ -119,13 +119,23 @@ class BattleReporter:
         defense = details.get("defense", "block")
         success = details.get("success", False)
         defense_rate = details.get("defense_rate")
+        defender_ap_percent = details.get("defender_ap_percent")
+        attack_interval_ticks = details.get("attack_interval_ticks")
 
         defense_cn = DEFENSE_TYPE_CN.get(defense, defense)
         success_text = "成功" if success else "失败"
 
         lines = []
         lines.append(f"\n  ⚔ {attacker} → {defender}")
+        
+        # 显示攻击间隔
+        if attack_interval_ticks is not None:
+            interval_seconds = attack_interval_ticks / 20.0
+            lines.append(f"    攻击间隔: {interval_seconds:.2f}秒 ({attack_interval_ticks}tick)")
+        
         lines.append(f"    防御方式: {defense_cn}")
+        if defender_ap_percent is not None:
+            lines.append(f"    防守方AP: {defender_ap_percent * 100:.1f}%")
         if defense_rate is not None:
             lines.append(f"    成功率: {defense_rate * 100:.1f}%")
         lines.append(f"    判定结果: {success_text}")

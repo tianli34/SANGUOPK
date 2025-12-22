@@ -20,15 +20,15 @@ class WarriorSnapshot:
     name: str
     team: str
     hp: float
-    hp_max: float
+    hp_real: float
     sp: float
-    sp_max: int
+    sp_real: int
     courage: int
     is_alive: bool
     # 基础属性
-    martial_arts: int
+    martialarts: int
     agility: int
-    strength: float
+    strength: int
     # 衍生属性
     attack_power: float
     defense_power: float
@@ -42,9 +42,9 @@ class Warrior:
         self,
         name: str,
         team: str,
-        martial_arts: int = 50,
+        martialarts: int = 50,
         agility: int = 50,
-        strength: float = 50.0,
+        strength: int = 50,
         courage: int = 50,
         sp: int = 50,
     ):
@@ -52,17 +52,18 @@ class Warrior:
         self.team = team
 
         # 初始化武将的运行时状态
-        self.sp_max = sp * SP_EXPANSION_FACTOR  # 体力上限
-        self.sp = self.sp_max  # 当前体力
-        self.hp_max = self.sp_max * HP_COEFFICIENT  # 最大生命值
-        self.hp = self.hp_max  # 当前生命值
+        self.init_sp = sp  # 初始体力
+        self.sp_real = sp * SP_EXPANSION_FACTOR  # 体力上限
+        self.sp = self.sp_real  # 当前体力
+        self.hp_real = self.sp_real * HP_COEFFICIENT  # 最大生命值
+        self.hp = self.hp_real  # 当前生命值
         self.ap = 0.0  # 行动点数
         self.is_alive = True  # 存活状态
 
         # 初始化武将的运行时状态_基础属性(四维属性)
-        self.martial_arts = martial_arts  # 武艺
-        self.agility = agility  # 敏捷
-        self.init_strength = strength  # 初始力量
+        self.martialarts_init = martialarts  # 武艺
+        self.agility_init = agility  # 初始敏捷
+        self.strength_init = strength  # 初始力量
         self.courage = courage  # 胆气
 
     def snapshot(self) -> WarriorSnapshot:
@@ -71,39 +72,48 @@ class Warrior:
             name=self.name,
             team=self.team,
             hp=self.hp,
-            hp_max=self.hp_max,
+            hp_real=self.hp_real,
             sp=self.sp,
-            sp_max=self.sp_max,
+            sp_real=self.sp_real,
             courage=self.courage,
             is_alive=self.is_alive,
-            martial_arts=self.martial_arts,
+            martialarts=self.martialarts,
             agility=self.agility,
             strength=self.strength,
             attack_power=self.attack_power,
             defense_power=self.defense_power,
             attack_speed=self.attack_speed,
         )
+    
+    @property
+    def martialarts(self) -> int:
+        """根据体力百分比动态计算武艺,每次都要基于初始武艺和当前体力计算当前武艺"""
+        return int(self.martialarts_init *(0.7+ (min(self.sp_percent, 0.8)/0.8)*0.3))
 
     @property
-    def strength(self) -> float:
+    def strength(self) -> int:
         """根据体力百分比动态计算力量,每次都要基于初始力量和当前体力计算当前力量"""
-        return self.init_strength * math.sqrt(self.sp_percent)
+        return int(self.strength_init *(0.3+0.7*math.sqrt(self.sp_percent)))
+    
+    @property
+    def agility(self) -> int:
+        """根据体力百分比动态计算敏捷,每次都要基于初始敏捷和当前体力计算当前敏捷"""
+        return int(self.agility_init * self.sp_percent**2)
 
     @property
     def attack_speed(self) -> float:
         """根据敏捷和体力比例计算攻击速度"""
-        sp_ratio = min(1.0, (self.sp_percent) / 0.5)
-        return (100 + self.agility * 2) * sp_ratio
+        return 50 + self.agility * 2
 
     @property
     def attack_power(self) -> float:
-        """计算攻击力: 力量×1 + 武艺×0.5"""
-        return self.strength * 1 + self.martial_arts * 0.5
+        """计算攻击力: 力量×武艺"""
+        return math.sqrt(self.strength * self.martialarts)*2
 
     @property
     def defense_power(self) -> float:
-        """计算防御力: 力量×0.5 + 体力上限×0.01"""
-        return self.strength * 0.5 + self.sp_max * 0.01
+        """计算防御力: 力量×初始体力"""
+        return math.sqrt(self.strength * self.init_sp)
 
     @property
     def base_impact(self) -> float:
@@ -113,7 +123,7 @@ class Warrior:
     @property
     def sp_percent(self) -> float:
         """当前体力百分比"""
-        return self.sp / self.sp_max
+        return self.sp / self.sp_real
 
     @property
     def sp_raw(self) -> float:
@@ -123,7 +133,7 @@ class Warrior:
     @property
     def hp_percent(self) -> float:
         """当前生命值百分比"""
-        return self.hp / self.hp_max
+        return self.hp / self.hp_real
 
     @property
     def ap_percent(self) -> float:
@@ -162,9 +172,9 @@ class Warrior:
 
         weights = {
             DefenseType.BLOCK: self.strength * 0.6 + self.sp_percent * 100 * 0.4,
-            DefenseType.PARRY: self.martial_arts * 0.7 + self.agility * 0.3,
-            DefenseType.DODGE: self.agility * 0.7 + self.martial_arts * 0.2 + abs(self.courage - 80) * 0.2,
-            DefenseType.COUNTER: (self.courage * 0.7 + self.martial_arts * 0.3) * (1 - self.hp_percent),
+            DefenseType.PARRY: self.martialarts * 0.7 + self.agility * 0.3,
+            DefenseType.DODGE: self.agility * 0.7 + self.martialarts * 0.2 + abs(self.courage - 80) * 0.2,
+            DefenseType.COUNTER: (self.courage * 0.7 + self.martialarts * 0.3) * (1 - self.hp_percent),
         }
 
         total = sum(weights.values())

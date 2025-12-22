@@ -416,13 +416,13 @@ from src.battle_report import AggregateReporter
 
 def create_warrior_a():
     return Warrior(
-        "马超", "A", martial_arts=98, agility=95, strength=92, courage=94, sp=98
+        "马超", "A", martialarts=98, agility=95, strength=92, courage=94, sp=98
     )
 
 
 def create_warrior_b():
     return Warrior(
-        "许褚", "B", martial_arts=95, agility=80, strength=99, courage=96, sp=100
+        "许褚", "B", martialarts=95, agility=80, strength=99, courage=96, sp=100
     )
 
 
@@ -462,14 +462,14 @@ from src.constants import MAX_HP
 def create_warrior_a():
     """创建A队武将"""
     return Warrior(
-        "马超", "A", martial_arts=98, agility=95, strength=92, courage=94, sp=98
+        "马超", "A", martialarts=98, agility=95, strength=92, courage=94, sp=98
     )
 
 
 def create_warrior_b():
     """创建B队武将"""
     return Warrior(
-        "许褚", "B", martial_arts=95, agility=80, strength=99, courage=96, sp=100
+        "许褚", "B", martialarts=95, agility=80, strength=99, courage=96, sp=100
     )
 
 
@@ -940,7 +940,7 @@ def format_warrior_initial_stats(snapshot: WarriorSnapshot) -> str:
 
     return (
         f"  【{snapshot.name}】\n"
-        f"    四维属性: 武艺={snapshot.martial_arts} 敏捷={snapshot.agility} "
+        f"    四维属性: 武艺={snapshot.martialarts} 敏捷={snapshot.agility} "
         f"力量={snapshot.strength} 胆气={snapshot.courage} 体力={sp_display:.0f}\n"
         f"    战斗属性: HP={snapshot.hp:.0f} SP={snapshot.sp:.0f}/{snapshot.sp_max}\n"
         f"    计算属性: 攻击力={snapshot.attack_power:.1f} 防御力={snapshot.defense_power:.1f} "
@@ -1676,26 +1676,26 @@ def calculate_defense_rate(
         )
 
     elif defense_type == DefenseType.PARRY:
-        diff = defender.martial_arts - attacker.strength
+        diff = defender.martialarts - attacker.strength
         rate = (params["base_rate"] + diff * params["rate_factor"]) * (
             ratio**3 if (ratio := ap_percent / 0.8) > 1 else ratio
         )
 
     elif defense_type == DefenseType.DODGE:
-        diff = defender.agility - attacker.martial_arts
+        diff = defender.agility - attacker.martialarts
         rate = (params["base_rate"] + diff * params["rate_factor"]) * min(
             1.0, ap_percent / 0.5
         )
 
     elif defense_type == DefenseType.COUNTER:
         defender_composite = (
-            defender.martial_arts * 0.45
+            defender.martialarts * 0.45
             + defender.agility * 0.45
             + defender.courage * 0.1
         )
         attacker_composite = (
             attacker.agility * 0.50
-            + attacker.martial_arts * 0.40
+            + attacker.martialarts * 0.40
             + attacker.courage * 0.1
         )
         diff = defender_composite - attacker_composite
@@ -1843,7 +1843,7 @@ class WarriorSnapshot:
     courage: int
     is_alive: bool
     # 基础属性
-    martial_arts: int
+    martialarts: int
     agility: int
     strength: int
     # 衍生属性
@@ -1859,7 +1859,7 @@ class Warrior:
         self,
         name: str,
         team: str,
-        martial_arts: int = 50,
+        martialarts: int = 50,
         agility: int = 50,
         strength: int = 50,
         courage: int = 50,
@@ -1869,7 +1869,7 @@ class Warrior:
         self.team = team
 
         # 基础属性(四维属性)
-        self.martial_arts = martial_arts  # 武艺
+        self.martialarts = martialarts  # 武艺
         self.agility = agility  # 敏捷
         self.strength = strength  # 力量
         self.courage = courage  # 胆气
@@ -1893,7 +1893,7 @@ class Warrior:
             sp_max=self.sp_max,
             courage=self.courage,
             is_alive=self.is_alive,
-            martial_arts=self.martial_arts,
+            martialarts=self.martialarts,
             agility=self.agility,
             strength=self.strength,
             attack_power=self.attack_power,
@@ -1910,7 +1910,7 @@ class Warrior:
     @property
     def attack_power(self) -> float:
         """计算攻击力: 力量×1.5 + 武艺×0.5"""
-        return self.strength * 1.5 + self.martial_arts * 0.5
+        return self.strength * 1.5 + self.martialarts * 0.5
 
     @property
     def defense_power(self) -> float:
@@ -1971,13 +1971,13 @@ class Warrior:
 
     def choose_defense(self) -> DefenseType:
         """AI根据加权属性选择防御类型"""
-        # counter_weight = (self.courage * 0.7 + self.martial_arts * 0.3) * (1 - self.hp_percent)
+        # counter_weight = (self.courage * 0.7 + self.martialarts * 0.3) * (1 - self.hp_percent)
 
         weights = {
             DefenseType.BLOCK: self.strength * 0.6 + self.sp_percent * 100 * 0.4,
-            DefenseType.PARRY: self.martial_arts * 0.7 + self.agility * 0.3,
+            DefenseType.PARRY: self.martialarts * 0.7 + self.agility * 0.3,
             DefenseType.DODGE: self.agility * 0.8 + (COURAGE_CAP - self.courage) * 0.2,
-            DefenseType.COUNTER: (self.courage * 0.7 + self.martial_arts * 0.3)
+            DefenseType.COUNTER: (self.courage * 0.7 + self.martialarts * 0.3)
             * (1 - self.hp_percent),
         }
 
