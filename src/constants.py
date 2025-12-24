@@ -27,7 +27,7 @@ ARMOR_PENETRATION = 1.0  # 破甲系数
 
 # 战斗规则
 MAX_ROUNDS = 300  # 最大回合数
-MAX_TICKS = 20000  # 最大时间刻度（防止无限循环）
+MAX_TICKS = 30000  # 最大时间刻度（防止无限循环）
 
 # 防御参数
 DEFENSE_PARAMS = {
@@ -39,6 +39,8 @@ DEFENSE_PARAMS = {
         "fail_damage_mult": 2.0,  # 失败伤害倍率
         "recoil_mult": 0.3,  # 反震倍率
         "sp_cost_ratio": 0.3,  # 体力消耗比例
+        "success_courage": 10,  # 成功胆气变化
+        "fail_courage": -30,  # 失败胆气变化
     },
     "parry": {  # 卸力
         "base_rate": 0.50,  # 基础成功率

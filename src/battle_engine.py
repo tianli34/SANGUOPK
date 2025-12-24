@@ -46,6 +46,7 @@ class BattleResult:
     logs: List[BattleLog]  # 战斗日志
     team_a: List[Warrior] = field(default_factory=list)  # A队所有武将
     team_b: List[Warrior] = field(default_factory=list)  # B队所有武将
+    sp_leader_changes: List[tuple] = field(default_factory=list)  # 体力领先者变更历史 [(round_num, leader)]
 
 
 class BattleEngine:
@@ -61,6 +62,8 @@ class BattleEngine:
         self.attack_count = 0  # 攻击次数计数器
         self.logs: List[BattleLog] = []  # 战斗日志
         self.last_attack_tick = {}  # 记录每个武将上次攻击的tick
+        self.sp_leader = None  # 当前体力领先者（"A" 或 "B"）
+        self.sp_leader_changes = []  # 体力领先者变更历史 [(round_num, leader)]
 
         self._validate_teams()
 
@@ -92,6 +95,13 @@ class BattleEngine:
         """获取所有存活的武将"""
         return [w for w in self.all_warriors if w.is_alive]
 
+    def _get_team_sp_percent(self, team: str) -> float:
+        """计算指定队伍的总体力百分比"""
+        warriors = self.team_a if team == "A" else self.team_b
+        total_sp = sum(w.sp for w in warriors)
+        total_sp_real = sum(w.sp_real for w in warriors)
+        return total_sp / total_sp_real if total_sp_real > 0 else 0.0
+
     def _find_target(self, attacker: Warrior) -> Optional[Warrior]:
         """寻找目标：生命值最低的敌人"""
         enemy_team = "B" if attacker.team == "A" else "A"
@@ -118,6 +128,7 @@ class BattleEngine:
                 logs=self.logs,
                 team_a=self.team_a,
                 team_b=self.team_b,
+                sp_leader_changes=self.sp_leader_changes,
             )
 
         # A队全灭
@@ -133,6 +144,7 @@ class BattleEngine:
                 logs=self.logs,
                 team_a=self.team_a,
                 team_b=self.team_b,
+                sp_leader_changes=self.sp_leader_changes,
             )
 
         # B队全灭
@@ -148,6 +160,7 @@ class BattleEngine:
                 logs=self.logs,
                 team_a=self.team_a,
                 team_b=self.team_b,
+                sp_leader_changes=self.sp_leader_changes,
             )
 
         return None
@@ -184,6 +197,7 @@ class BattleEngine:
                 logs=self.logs,
                 team_a=self.team_a,
                 team_b=self.team_b,
+                sp_leader_changes=self.sp_leader_changes,
             )
         elif pct_b > pct_a:
             return BattleResult(
@@ -196,6 +210,7 @@ class BattleEngine:
                 logs=self.logs,
                 team_a=self.team_a,
                 team_b=self.team_b,
+                sp_leader_changes=self.sp_leader_changes,
             )
         else:
             return BattleResult(
@@ -208,6 +223,7 @@ class BattleEngine:
                 logs=self.logs,
                 team_a=self.team_a,
                 team_b=self.team_b,
+                sp_leader_changes=self.sp_leader_changes,
             )
 
     def _process_single_attack(self, attacker: Warrior) -> None:
@@ -220,8 +236,10 @@ class BattleEngine:
         # 记录攻击前状态
         attacker_hp_before = attacker.hp
         attacker_sp_before = attacker.sp
+        attacker_sp_percent_before = attacker.sp_percent  # 攻击方SP百分比
         target_hp_before = target.hp
         target_sp_before = target.sp
+        target_sp_percent_before = target.sp_percent  # 防守方SP百分比
         target_courage_before = target.courage
         target_ap_percent = target.ap_percent  # 记录防守方AP百分比
 
@@ -243,8 +261,9 @@ class BattleEngine:
             attacker.take_damage(result.damage_to_attacker)
 
         target.consume_sp(result.defender_sp_cost)
-        attacker.consume_sp(result.attacker_sp_cost + 10)  # 每次攻击额外消耗10点SP
+        attacker.consume_sp(result.attacker_sp_cost + attacker.attack_sp_cost())  # 每次攻击额外消耗attack_sp_cost点SP
         target.modify_courage(result.defender_courage_change)
+        target.ap /= 2  # 防御后将当前ap除以2
 
         # 计算攻击间隔（第一次攻击间隔为从战斗开始到现在）
         attack_interval_ticks = self.tick_count - self.last_attack_tick.get(attacker.name, 0)
@@ -264,17 +283,21 @@ class BattleEngine:
             damage_to_defender=result.damage_to_defender,
             damage_to_attacker=result.damage_to_attacker,
             defender_sp_cost=result.defender_sp_cost,
-            attacker_sp_cost=result.attacker_sp_cost + 10,  # 包含额外的10点SP消耗
+            attacker_sp_cost=result.attacker_sp_cost + attacker.attack_sp_cost(),  # 包含额外的attack_sp_cost点SP消耗
             defender_courage_change=result.defender_courage_change,
             # 状态变化记录
             attacker_hp_before=attacker_hp_before,
             attacker_hp_after=attacker.hp,
             attacker_sp_before=attacker_sp_before,
             attacker_sp_after=attacker.sp,
+            attacker_sp_percent_before=attacker_sp_percent_before,
+            attacker_sp_percent_after=attacker.sp_percent,
             target_hp_before=target_hp_before,
             target_hp_after=target.hp,
             target_sp_before=target_sp_before,
             target_sp_after=target.sp,
+            target_sp_percent_before=target_sp_percent_before,
+            target_sp_percent_after=target.sp_percent,
             target_courage_before=target_courage_before,
             target_courage_after=target.courage,
             target_alive=target.is_alive,
@@ -312,6 +335,29 @@ class BattleEngine:
         if alive_count > 0 and self.attack_count >= alive_count:
             self.round_count += 1
             self.attack_count = 0
+            
+            # 检查体力领先者
+            sp_a = self._get_team_sp_percent("A")
+            sp_b = self._get_team_sp_percent("B")
+            new_leader = None
+            
+            if sp_a > sp_b:
+                new_leader = "A"
+            elif sp_b > sp_a:
+                new_leader = "B"
+            # 如果相等，保持当前领先者不变
+            
+            # 记录变更
+            if new_leader is not None and new_leader != self.sp_leader:
+                self.sp_leader = new_leader
+                self.sp_leader_changes.append((self.round_count, new_leader))
+                self._log("sp_leader_change", f"体力领先者变更: {new_leader}队", leader=new_leader, round_num=self.round_count)
+            elif self.sp_leader is None and new_leader is not None:
+                # 初始设置体力领先者
+                self.sp_leader = new_leader
+                self.sp_leader_changes.append((self.round_count, new_leader))
+                self._log("sp_leader_change", f"初始体力领先者: {new_leader}队", leader=new_leader, round_num=self.round_count)
+            
             self._log("round_end", f"第 {self.round_count} 回合结束")
 
     def run_tick(self) -> Optional[BattleResult]:

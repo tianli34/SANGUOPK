@@ -21,8 +21,10 @@ class WarriorSnapshot:
     team: str
     hp: float
     hp_real: float
+    hp_percent: float
     sp: float
     sp_real: int
+    sp_percent: float
     courage: int
     is_alive: bool
     # 基础属性
@@ -61,10 +63,10 @@ class Warrior:
         self.is_alive = True  # 存活状态
 
         # 初始化武将的运行时状态_基础属性(四维属性)
-        self.martialarts_init = martialarts  # 武艺
-        self.agility_init = agility  # 初始敏捷
-        self.strength_init = strength  # 初始力量
-        self.courage = courage  # 胆气
+        self.martialarts_init = max(1, martialarts)  # 武艺，最小值为1
+        self.agility_init = max(1, agility)  # 初始敏捷，最小值为1
+        self.strength_init = max(1, strength)  # 初始力量，最小值为1
+        self.courage = max(1, courage)  # 胆气，最小值为1
 
     def snapshot(self) -> WarriorSnapshot:
         """获取武将当前状态快照"""
@@ -73,8 +75,10 @@ class Warrior:
             team=self.team,
             hp=self.hp,
             hp_real=self.hp_real,
+            hp_percent=self.hp_percent,
             sp=self.sp,
             sp_real=self.sp_real,
+            sp_percent=self.sp_percent,
             courage=self.courage,
             is_alive=self.is_alive,
             martialarts=self.martialarts,
@@ -88,17 +92,17 @@ class Warrior:
     @property
     def martialarts(self) -> int:
         """根据体力百分比动态计算武艺,每次都要基于初始武艺和当前体力计算当前武艺"""
-        return int(self.martialarts_init *(0.7+ (min(self.sp_percent, 0.8)/0.8)*0.3))
+        return max(1, int(self.martialarts_init *(0.7+ (min(self.sp_percent, 0.8)/0.8)*0.3)))
 
     @property
     def strength(self) -> int:
         """根据体力百分比动态计算力量,每次都要基于初始力量和当前体力计算当前力量"""
-        return int(self.strength_init *(0.3+0.7*math.sqrt(self.sp_percent)))
+        return max(1, int(self.strength_init *(0.3+0.7*math.sqrt(self.sp_percent))))
     
     @property
     def agility(self) -> int:
         """根据体力百分比动态计算敏捷,每次都要基于初始敏捷和当前体力计算当前敏捷"""
-        return int(self.agility_init * self.sp_percent**2)
+        return max(1, int(self.agility_init * self.sp_percent**2))
 
     @property
     def attack_speed(self) -> float:
@@ -163,9 +167,12 @@ class Warrior:
         """消耗体力"""
         self.sp = max(0, self.sp - amount)
 
+    def attack_sp_cost(self) -> int:
+        return int(((10 + self.strength * 0.1) / (1 + self.martialarts * 0.01 + self.agility * 0.005) * (1.6 - self.courage* 0.8/120))/math.sqrt(max(0.001, self.hp_percent)))
+
     def modify_courage(self, amount: int) -> None:
         """在限制范围内修改胆气"""
-        self.courage = max(0, min(COURAGE_CAP, self.courage + amount))
+        self.courage = max(1, min(COURAGE_CAP, self.courage + amount))
 
     def choose_defense(self) -> DefenseType:
         """AI根据加权属性选择防御类型"""

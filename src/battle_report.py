@@ -77,6 +77,13 @@ class BattleReporter:
         lines.append(f"【第 {round_num} 回合】")
         lines.append("─" * 70)
 
+        # 显示该回合的体力领先者变更
+        for log in round_logs:
+            if log.event_type == "sp_leader_change":
+                leader = log.details.get("leader", "")
+                lines.append(f"  体力领先者: {leader}队")
+                break
+
         for log in round_logs:
             if log.event_type == "attack":
                 lines.append(self._format_attack_log(log))
@@ -106,9 +113,14 @@ class BattleReporter:
         # 对于 HP/SP, 通常显示减少值，所以保持原逻辑 (before - after) 为正数表示减少
         if stat in ("hp", "sp"):
             display_diff = before - after
-            return (
-                f"{name} {label}: {before:{fmt}}→{after:{fmt}} (-{display_diff:{fmt}})"
-            )
+            result = f"{name} {label}: {before:{fmt}}→{after:{fmt}} (-{display_diff:{fmt}})"
+            # 如果是SP，直接从快照获取百分比
+            if stat == "sp":
+                pct_before = details.get(f"{name_key}_sp_percent_before")
+                pct_after = details.get(f"{name_key}_sp_percent_after")
+                if pct_before is not None and pct_after is not None:
+                    result += f" ({pct_before * 100:.1f}%→{pct_after * 100:.1f}%)"
+            return result
         else:
             return f"{name} {label}: {before:{fmt}}→{after:{fmt}} ({sign}{diff:{fmt}})"
 
@@ -198,6 +210,12 @@ class BattleReporter:
         )
         lines.append(f"获胜方: {result.winner_team or '无'}")
         lines.append(f"总回合数: {result.rounds}")
+
+        # 显示体力领先者变更历史
+        if result.sp_leader_changes:
+            lines.append("\n【体力领先者变更历史】")
+            for round_num, leader in result.sp_leader_changes:
+                lines.append(f"第{round_num}回合，体力领先者→{leader}队")
 
         lines.append("\n▶ A队武将状态:")
         for w in self.team_a:

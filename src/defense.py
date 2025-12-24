@@ -43,7 +43,7 @@ def calculate_defense_rate(defense_type: DefenseType, defender: "Warrior", attac
 
     elif defense_type == DefenseType.DODGE:
         diff = defender.agility*1.5 - attacker.martialarts
-        rate = params["base_rate"] + diff * params["rate_factor"]+ap_percent
+        rate = params["base_rate"] + diff * params["rate_factor"] + ap_percent
 
     elif defense_type == DefenseType.COUNTER:
         defender_composite = defender.martialarts * 0.45 + defender.agility * 0.45 + defender.courage * 0.1
@@ -76,11 +76,11 @@ def process_block(defender: "Warrior", attacker: "Warrior") -> DefenseResult:
     if success:
         defender_damage = original_defender_damage * params["success_damage_mult"]
         recoil_damage = original_recoil_damage
-        courage_change = 10
+        courage_change = params["success_courage"]
     else:
         defender_damage = original_defender_damage * params["fail_damage_mult"]
         recoil_damage = 0.0
-        courage_change = -30
+        courage_change = params["fail_courage"]
 
     # 双方体力消耗 = 受伤值 × sp_cost_ratio
     defender_sp_cost = defender_damage * params["sp_cost_ratio"]
