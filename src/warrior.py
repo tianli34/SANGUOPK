@@ -5,7 +5,8 @@ import math
 import random
 from dataclasses import dataclass
 from src.constants import (
-    AP_LIMIT,
+    WINDUP_LIMIT,
+    BACKSWING_LIMIT,
     COURAGE_CAP,
     SP_EXPANSION_FACTOR,
     HP_COEFFICIENT,
@@ -142,7 +143,7 @@ class Warrior:
     @property
     def ap_percent(self) -> float:
         """当前行动点数百分比"""
-        return self.ap / AP_LIMIT
+        return self.ap / (WINDUP_LIMIT + BACKSWING_LIMIT)
 
     def tick_ap(self, tick_rate: float) -> None:
         """根据攻击速度累积行动点数"""
@@ -151,7 +152,7 @@ class Warrior:
 
     def can_attack(self) -> bool:
         """检查是否达到行动点数阈值"""
-        return self.is_alive and self.ap >= AP_LIMIT
+        return self.is_alive and self.ap >= WINDUP_LIMIT
 
     def reset_ap(self) -> None:
         """攻击后重置行动点数"""

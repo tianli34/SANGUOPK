@@ -62,6 +62,7 @@ class BattleEngine:
         self.attack_count = 0  # 攻击次数计数器
         self.logs: List[BattleLog] = []  # 战斗日志
         self.last_attack_tick = {}  # 记录每个武将上次攻击的tick
+        self.last_any_attack_tick = 0  # 记录任何武将上次攻击的tick
         self.sp_leader = None  # 当前体力领先者（"A" 或 "B"）
         self.sp_leader_changes = []  # 体力领先者变更历史 [(round_num, leader)]
 
@@ -265,9 +266,11 @@ class BattleEngine:
         target.modify_courage(result.defender_courage_change)
         target.ap /= 2  # 防御后将当前ap除以2
 
-        # 计算攻击间隔（第一次攻击间隔为从战斗开始到现在）
+        # 计算政击间隔（第一次攻击间隔为从战斗开始到现在）
         attack_interval_ticks = self.tick_count - self.last_attack_tick.get(attacker.name, 0)
+        global_attack_interval_ticks = self.tick_count - self.last_any_attack_tick
         self.last_attack_tick[attacker.name] = self.tick_count
+        self.last_any_attack_tick = self.tick_count
 
         # 记录攻击日志（包含详细状态变化）
         self._log(
@@ -279,7 +282,8 @@ class BattleEngine:
             success=result.success,
             defense_rate=defense_rate,  # 记录防御成功率
             defender_ap_percent=target_ap_percent,  # 记录防守方AP百分比
-            attack_interval_ticks=attack_interval_ticks,  # 记录攻击间隔
+            attack_interval_ticks=attack_interval_ticks,  # 记录该武将的攻击间隔
+            global_attack_interval_ticks=global_attack_interval_ticks,  # 记录距离任何攻击的间隔
             damage_to_defender=result.damage_to_defender,
             damage_to_attacker=result.damage_to_attacker,
             defender_sp_cost=result.defender_sp_cost,

@@ -132,7 +132,6 @@ class BattleReporter:
         success = details.get("success", False)
         defense_rate = details.get("defense_rate")
         defender_ap_percent = details.get("defender_ap_percent")
-        attack_interval_ticks = details.get("attack_interval_ticks")
 
         defense_cn = DEFENSE_TYPE_CN.get(defense, defense)
         success_text = "成功" if success else "失败"
@@ -141,9 +140,14 @@ class BattleReporter:
         lines.append(f"\n  ⚔ {attacker} → {defender}")
         
         # 显示攻击间隔
+        attack_interval_ticks = details.get("attack_interval_ticks")
+        global_attack_interval_ticks = details.get("global_attack_interval_ticks")
         if attack_interval_ticks is not None:
             interval_seconds = attack_interval_ticks / 20.0
-            lines.append(f"    攻击间隔: {interval_seconds:.2f}秒 ({attack_interval_ticks}tick)")
+            lines.append(f"    该武将政击间隔: {interval_seconds:.2f}秒 ({attack_interval_ticks}tick)")
+        if global_attack_interval_ticks is not None:
+            global_interval_seconds = global_attack_interval_ticks / 20.0
+            lines.append(f"    距上次攻击间隔: {global_interval_seconds:.2f}秒 ({global_attack_interval_ticks}tick)")
         
         lines.append(f"    防御方式: {defense_cn}")
         if defender_ap_percent is not None:
