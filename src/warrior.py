@@ -5,13 +5,13 @@ import math
 import random
 from dataclasses import dataclass
 from src.constants import (
-    WINDUP_LIMIT,
-    BACKSWING_LIMIT,
+    WINDUP_BAR,
+    BACKSWING_BAR,
     COURAGE_CAP,
     SP_EXPANSION_FACTOR,
     HP_COEFFICIENT,
 )
-from src.enums import DefenseType
+from src.enums import DefenseType, AttackPhase
 
 
 @dataclass
@@ -36,6 +36,9 @@ class WarriorSnapshot:
     attack_power: float
     defense_power: float
     attack_speed: float
+    # 攻击阶段
+    attack_phase: AttackPhase
+    ap: float
 
 
 class Warrior:
@@ -62,6 +65,9 @@ class Warrior:
         self.hp = self.hp_real  # 当前生命值
         self.ap = 0.0  # 行动点数
         self.is_alive = True  # 存活状态
+        
+        # 攻击阶段状态
+        self.attack_phase = AttackPhase.WINDUP  # 初始为前摇阶段
 
         # 初始化武将的运行时状态_基础属性(四维属性)
         self.martialarts_init = max(1, martialarts)  # 武艺，最小值为1
@@ -88,6 +94,8 @@ class Warrior:
             attack_power=self.attack_power,
             defense_power=self.defense_power,
             attack_speed=self.attack_speed,
+            attack_phase=self.attack_phase,
+            ap=self.ap,
         )
     
     @property
@@ -143,7 +151,7 @@ class Warrior:
     @property
     def ap_percent(self) -> float:
         """当前行动点数百分比"""
-        return self.ap / (WINDUP_LIMIT + BACKSWING_LIMIT)
+        return self.ap / (WINDUP_BAR + BACKSWING_BAR)
 
     def tick_ap(self, tick_rate: float) -> None:
         """根据攻击速度累积行动点数"""
@@ -151,11 +159,40 @@ class Warrior:
             self.ap += self.attack_speed * tick_rate
 
     def can_attack(self) -> bool:
-        """检查是否达到行动点数阈值"""
-        return self.is_alive and self.ap >= WINDUP_LIMIT
+        """检查是否可以发起攻击（前摇阶段且达到前摇阈值）"""
+        return (
+            self.is_alive
+            and self.attack_phase == AttackPhase.WINDUP
+            and self.ap >= WINDUP_BAR
+        )
+
+    def is_in_backswing(self) -> bool:
+        """检查是否处于后摇阶段"""
+        return self.attack_phase == AttackPhase.BACKSWING
+
+    def start_attack(self) -> None:
+        """开始攻击，进入攻击阶段"""
+        self.attack_phase = AttackPhase.ATTACK
+        self.ap = 0.0  # 重置AP，开始累积后摇
+
+    def finish_attack(self) -> None:
+        """攻击完成，进入后摇阶段"""
+        self.attack_phase = AttackPhase.BACKSWING
+
+    def finish_backswing(self) -> None:
+        """后摇完成，进入前摇阶段"""
+        self.attack_phase = AttackPhase.WINDUP
+        self.ap = 0.0  # 重置AP，开始累积前摇
+
+    def check_backswing_complete(self) -> bool:
+        """检查后摇是否完成"""
+        return (
+            self.attack_phase == AttackPhase.BACKSWING
+            and self.ap >= BACKSWING_BAR
+        )
 
     def reset_ap(self) -> None:
-        """攻击后重置行动点数"""
+        """攻击后重置行动点数（兼容旧代码）"""
         self.ap = 0.0
 
     def take_damage(self, damage: float) -> None:

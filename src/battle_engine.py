@@ -231,8 +231,12 @@ class BattleEngine:
         """处理单个攻击动作"""
         target = self._find_target(attacker)
         if not target:
-            attacker.reset_ap()
+            attacker.finish_attack()
+            attacker.finish_backswing()
             return
+
+        # 进入攻击阶段
+        attacker.start_attack()
 
         # 记录攻击前状态
         attacker_hp_before = attacker.hp
@@ -308,7 +312,8 @@ class BattleEngine:
             attacker_alive=attacker.is_alive,
         )
 
-        attacker.reset_ap()
+        # 攻击完成，进入后摇阶段
+        attacker.finish_attack()
         self.attack_count += 1
 
     def _process_clash(self, ready_warriors: List[Warrior]) -> None:
@@ -321,7 +326,9 @@ class BattleEngine:
             sp_cost = clash_result.sp_costs[warrior.name]
             warrior.take_damage(damage)
             warrior.consume_sp(sp_cost)
-            warrior.reset_ap()
+            # 拼刀后进入后摇阶段
+            warrior.start_attack()
+            warrior.finish_attack()
 
         self._log(
             "clash",
@@ -372,7 +379,12 @@ class BattleEngine:
         for warrior in self._get_all_alive():
             warrior.tick_ap(TICK_RATE)
 
-        # 获取准备攻击的武将
+        # 检查后摇完成的武将，让他们进入前摇阶段
+        for warrior in self._get_all_alive():
+            if warrior.check_backswing_complete():
+                warrior.finish_backswing()
+
+        # 获取准备攻击的武将（前摇完成的）
         ready = [w for w in self._get_all_alive() if w.can_attack()]
 
         if len(ready) >= 2 and check_clash_condition(ready):

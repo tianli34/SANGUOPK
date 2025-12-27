@@ -10,3 +10,11 @@ class DefenseType(Enum):
     PARRY = "parry"  # 卸力
     DODGE = "dodge"  # 闪避
     COUNTER = "counter"  # 反击
+
+
+class AttackPhase(Enum):
+    """攻击阶段枚举"""
+
+    WINDUP = "windup"  # 前摇阶段
+    ATTACK = "attack"  # 攻击阶段（瞬时）
+    BACKSWING = "backswing"  # 后摇阶段

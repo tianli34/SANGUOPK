@@ -6,8 +6,8 @@ HP_COEFFICIENT = 2  # HP系数
 SP_EXPANSION_FACTOR = 50  # 体力膨胀系数
 
 # 行动点数
-WINDUP_LIMIT = 100  # 前摇行动点数阈值
-BACKSWING_LIMIT = 200  # 后摇行动点数阈值
+WINDUP_BAR = 100  # 前摇行动点数阈值
+BACKSWING_BAR = 200  # 后摇行动点数阈值
 
 TICK_RATE = 0.05  # 时间流逝速率
 

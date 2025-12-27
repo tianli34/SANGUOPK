@@ -8,7 +8,7 @@ from src.damage import calculate_base_damage, calculate_final_damage
 from src.clash import process_clash, check_clash_condition
 from src.enums import DefenseType
 from src.constants import (
-    BACKSWING_LIMIT,
+    BACKSWING_BAR,
     TICK_RATE,
     CLASH_AP_THRESHOLD,
     BLOCK_K,
@@ -30,7 +30,7 @@ __all__ = [
     "calculate_final_damage",
     "process_clash",
     "check_clash_condition",
-    "BACKSWING_LIMIT",
+    "BACKSWING_BAR",
     "TICK_RATE",
     "CLASH_AP_THRESHOLD",
     "BLOCK_K",
