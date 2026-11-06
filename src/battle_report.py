@@ -144,7 +144,7 @@ class BattleReporter:
         global_attack_interval_ticks = details.get("global_attack_interval_ticks")
         if attack_interval_ticks is not None:
             interval_seconds = attack_interval_ticks / 20.0
-            lines.append(f"    该武将政击间隔: {interval_seconds:.2f}秒 ({attack_interval_ticks}tick)")
+            lines.append(f"    该武将攻击间隔: {interval_seconds:.2f}秒 ({attack_interval_ticks}tick)")
         if global_attack_interval_ticks is not None:
             global_interval_seconds = global_attack_interval_ticks / 20.0
             lines.append(f"    距上次攻击间隔: {global_interval_seconds:.2f}秒 ({global_attack_interval_ticks}tick)")

@@ -29,13 +29,9 @@ def calculate_damage_multiplier(
     根据条件计算总伤害倍率
 
     倍率包括:
-    - 耐力崩盘(<20%): 1.5×
-    - 士气碾压(攻>80, 守<30): 1.2×
+    - 士气碾压(攻方胆气>80, 守方胆气<30): 1.5×
     """
     multiplier = base_multiplier
-
-    # if defender.sp_percent < 0.2:
-    #     multiplier *= 1.5
 
     if attacker.courage > 80 and defender.courage < 30:
         multiplier *= 1.5

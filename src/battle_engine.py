@@ -185,7 +185,8 @@ class BattleEngine:
         pct_a = current_hp_a / total_max_a if total_max_a > 0 else 0
         pct_b = current_hp_b / total_max_b if total_max_b > 0 else 0
 
-        self._log("timeout", f"达到最大回合数！A队血量{pct_a:.1%}，B队血量{pct_b:.1%}")
+        reason = "达到最大时间刻度" if self.tick_count >= MAX_TICKS else "达到最大回合数"
+        self._log("timeout", f"{reason}！A队血量{pct_a:.1%}，B队血量{pct_b:.1%}")
 
         if pct_a > pct_b:
             return BattleResult(
@@ -270,7 +271,7 @@ class BattleEngine:
         target.modify_courage(result.defender_courage_change)
         target.ap /= 2  # 防御后将当前ap除以2
 
-        # 计算政击间隔（第一次攻击间隔为从战斗开始到现在）
+        # 计算攻击间隔（第一次攻击间隔为从战斗开始到现在）
         attack_interval_ticks = self.tick_count - self.last_attack_tick.get(attacker.name, 0)
         global_attack_interval_ticks = self.tick_count - self.last_any_attack_tick
         self.last_attack_tick[attacker.name] = self.tick_count
@@ -358,17 +359,12 @@ class BattleEngine:
                 new_leader = "B"
             # 如果相等，保持当前领先者不变
             
-            # 记录变更
+            # 记录变更（初始 leader 为 None，同样会进入此分支）
             if new_leader is not None and new_leader != self.sp_leader:
                 self.sp_leader = new_leader
                 self.sp_leader_changes.append((self.round_count, new_leader))
                 self._log("sp_leader_change", f"体力领先者变更: {new_leader}队", leader=new_leader, round_num=self.round_count)
-            elif self.sp_leader is None and new_leader is not None:
-                # 初始设置体力领先者
-                self.sp_leader = new_leader
-                self.sp_leader_changes.append((self.round_count, new_leader))
-                self._log("sp_leader_change", f"初始体力领先者: {new_leader}队", leader=new_leader, round_num=self.round_count)
-            
+
             self._log("round_end", f"第 {self.round_count} 回合结束")
 
     def run_tick(self) -> Optional[BattleResult]:
