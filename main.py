@@ -3,7 +3,9 @@
 """三国武将对决模拟入口"""
 
 import argparse
+import random
 import sys
+from typing import Optional
 
 from src import Warrior, BattleEngine
 from src.battle_report import AggregateReporter, BattleReporter
@@ -43,6 +45,12 @@ def build_parser() -> argparse.ArgumentParser:
     """构建命令行参数解析器"""
     parser = argparse.ArgumentParser(description="三国武将对决模拟")
     parser.add_argument("-n", "--battles", type=int, default=1, help="模拟场次（默认 1）")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="随机种子；设置后结果可复现，第 i 场使用 seed + i（默认不设置，保持随机）",
+    )
 
     for side, defaults in DEFAULT_WARRIORS.items():
         prefix = side.upper()
@@ -69,6 +77,16 @@ def create_warrior(args: argparse.Namespace, side: str) -> Warrior:
     )
 
 
+def apply_seed(seed: Optional[int], battle_index: int) -> None:
+    """为第 battle_index 场战斗设置随机种子
+
+    按场次派生种子，使同一 seed 下前 k 场的结果与 -n k 完全一致；
+    未指定 seed 时不干预全局随机状态，保持原有随机行为。
+    """
+    if seed is not None:
+        random.seed(seed + battle_index)
+
+
 def main() -> None:
     """运行单挑模拟"""
     # Windows 默认 GBK 无法输出 ▶⚔☠ 等符号，统一使用 UTF-8
@@ -84,6 +102,8 @@ def main() -> None:
 
     print(f"三国武将对决系统 - {args.battles}场单挑模拟")
     print("=" * 70)
+    if args.seed is not None:
+        print(f"随机种子: {args.seed}")
 
     # 每场战斗都需要全新的武将实例，先保存初始快照用于汇总战报
     original_a = create_warrior(args, "a")
@@ -93,6 +113,7 @@ def main() -> None:
 
     if args.battles == 1:
         # 单场战报
+        apply_seed(args.seed, 0)
         reporter = BattleReporter([original_a], [original_b])
         engine = BattleEngine([original_a], [original_b])
         result = engine.run()
@@ -104,6 +125,7 @@ def main() -> None:
     reporter = AggregateReporter(original_a.name, original_b.name)
 
     for i in range(args.battles):
+        apply_seed(args.seed, i)
         engine = BattleEngine([create_warrior(args, "a")], [create_warrior(args, "b")])
         result = engine.run()
         reporter.add_battle_result(result)

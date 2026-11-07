@@ -14,6 +14,10 @@ TICK_RATE = 0.05  # 时间流逝速率
 # 拼刀系统
 CLASH_AP_THRESHOLD = 20  # 拼刀AP差值阈值
 
+# 受伤对行动点数的惩罚
+DEFENDER_AP_LOSS_RATIO = 0.5  # 守方受伤时：AP 扣除 受伤值 × 该比例
+ATTACKER_BACKSWING_LOSS_RATIO = 0.5  # 攻方受伤时：后摇阈值增加 受伤值 × 该比例
+
 # 格挡系统
 BLOCK_K = 0.5  # 格挡冲击力系数
 

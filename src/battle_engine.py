@@ -260,16 +260,23 @@ class BattleEngine:
         # 处理防御
         result = process_defense(defense_type, target, attacker, base_damage)
 
-        # 应用结果
+        # 应用结果：守方受伤扣AP，攻方受伤延长后摇
         if result.damage_to_defender > 0:
             target.take_damage(result.damage_to_defender)
+            target.apply_defender_damage_penalty(result.damage_to_defender)
         if result.damage_to_attacker > 0:
             attacker.take_damage(result.damage_to_attacker)
+            attacker.apply_attacker_damage_penalty(result.damage_to_attacker)
+
+        # 攻击体力消耗依赖当前 SP/HP 百分比，必须在扣减前只计算一次并复用，
+        # 否则日志记录值会与实际扣减不一致
+        attack_cost = attacker.attack_sp_cost()
 
         target.consume_sp(result.defender_sp_cost)
-        attacker.consume_sp(result.attacker_sp_cost + attacker.attack_sp_cost())  # 每次攻击额外消耗attack_sp_cost点SP
+        attacker_sp_before_deduction = attacker.sp
+        attacker.consume_sp(result.attacker_sp_cost + attack_cost)
+        attacker_actual_sp_cost = attacker_sp_before_deduction - attacker.sp
         target.modify_courage(result.defender_courage_change)
-        target.ap /= 2  # 防御后将当前ap除以2
 
         # 计算攻击间隔（第一次攻击间隔为从战斗开始到现在）
         attack_interval_ticks = self.tick_count - self.last_attack_tick.get(attacker.name, 0)
@@ -292,7 +299,7 @@ class BattleEngine:
             damage_to_defender=result.damage_to_defender,
             damage_to_attacker=result.damage_to_attacker,
             defender_sp_cost=result.defender_sp_cost,
-            attacker_sp_cost=result.attacker_sp_cost + attacker.attack_sp_cost(),  # 包含额外的attack_sp_cost点SP消耗
+            attacker_sp_cost=attacker_actual_sp_cost,  # 记录实际扣减量（SP 不足时会被钳到 0）
             defender_courage_change=result.defender_courage_change,
             # 状态变化记录
             attacker_hp_before=attacker_hp_before,
@@ -326,6 +333,7 @@ class BattleEngine:
             damage = clash_result.damages[warrior.name]
             sp_cost = clash_result.sp_costs[warrior.name]
             warrior.take_damage(damage)
+            warrior.apply_attacker_damage_penalty(damage)
             warrior.consume_sp(sp_cost)
             # 拼刀后进入后摇阶段
             warrior.start_attack()

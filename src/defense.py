@@ -46,8 +46,8 @@ def calculate_defense_rate(defense_type: DefenseType, defender: "Warrior", attac
         rate = ap_percent/0.6 + diff * params["rate_factor"]
 
     elif defense_type == DefenseType.COUNTER:
-        defender_composite = defender.martialarts * 0.45 + defender.agility * 0.45 + defender.courage * 0.1
-        attacker_composite = attacker.agility * 0.50 + attacker.martialarts * 0.40 + attacker.courage * 0.1
+        defender_composite = defender.martialarts * 0.7 + defender.agility * 0.3
+        attacker_composite = attacker.agility * 0.6 + attacker.martialarts * 0.2 + attacker.courage * 0.2
         diff = defender_composite - attacker_composite
         rate = ap_percent + diff * params["rate_factor"]
     else:
@@ -124,9 +124,9 @@ def process_defense(
             damage_multiplier=0.0,
         )
 
-        # 反击成功：防守方受到50%伤害，对攻击者造成1.5倍伤害
+        # 反击成功：防守方受到40%伤害，对攻击者造成1.5倍伤害
         if defense_type == DefenseType.COUNTER:
-            result.damage_to_defender = base_damage * 0.5
+            result.damage_to_defender = base_damage * 0.4
             result.damage_to_attacker = base_damage * 1.5
             result.damage_multiplier = 0.5
 
@@ -143,8 +143,8 @@ def process_defense(
             damage_multiplier=params["fail_damage_mult"],
         )
 
-        # 反击失败：对攻击者造成30%伤害
+        # 反击失败：对攻击者造成20%伤害
         if defense_type == DefenseType.COUNTER:
-            result.damage_to_attacker = base_damage * 0.3
+            result.damage_to_attacker = base_damage * 0.2
 
         return result

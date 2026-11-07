@@ -10,6 +10,8 @@ from src.constants import (
     COURAGE_CAP,
     SP_EXPANSION_FACTOR,
     HP_COEFFICIENT,
+    DEFENDER_AP_LOSS_RATIO,
+    ATTACKER_BACKSWING_LOSS_RATIO,
 )
 from src.enums import DefenseType, AttackPhase
 
@@ -64,6 +66,7 @@ class Warrior:
         self.hp_real = self.sp_real * HP_COEFFICIENT  # 最大生命值
         self.hp = self.hp_real  # 当前生命值
         self.ap = 0.0  # 行动点数
+        self.backswing_extra = 0.0  # 攻方受伤后追加的后摇阈值
         self.is_alive = True  # 存活状态
         
         # 攻击阶段状态
@@ -101,7 +104,7 @@ class Warrior:
     @property
     def martialarts(self) -> int:
         """根据体力百分比动态计算武艺,每次都要基于初始武艺和当前体力计算当前武艺"""
-        return max(1, int(self.martialarts_init *(0.7+ (min(self.sp_percent, 0.8)/0.8)*0.3)))
+        return max(1, int(self.martialarts_init *(0.6+ (min(self.sp_percent, 0.8)/0.8)*0.4)))
 
     @property
     def strength(self) -> int:
@@ -111,7 +114,7 @@ class Warrior:
     @property
     def agility(self) -> int:
         """根据体力百分比动态计算敏捷,每次都要基于初始敏捷和当前体力计算当前敏捷"""
-        return max(1, int(self.agility_init * self.sp_percent**2))
+        return max(1, int(self.agility_init *(0.1+0.9*math.sqrt(self.sp_percent))))
 
     @property
     def attack_speed(self) -> float:
@@ -150,8 +153,10 @@ class Warrior:
 
     @property
     def ap_percent(self) -> float:
-        """当前行动点数百分比"""
-        return self.ap / (WINDUP_BAR + BACKSWING_BAR)
+        """当前行动点数百分比（按当前攻击阶段的阈值归一化）"""
+        if self.attack_phase == AttackPhase.BACKSWING:
+            return self.ap / BACKSWING_BAR
+        return self.ap / WINDUP_BAR
 
     def tick_ap(self, tick_rate: float) -> None:
         """根据攻击速度累积行动点数"""
@@ -183,13 +188,22 @@ class Warrior:
         """后摇完成，进入前摇阶段"""
         self.attack_phase = AttackPhase.WINDUP
         self.ap = 0.0  # 重置AP，开始累积前摇
+        self.backswing_extra = 0.0  # 后摇结束，追加阈值失效
 
     def check_backswing_complete(self) -> bool:
         """检查后摇是否完成"""
         return (
             self.attack_phase == AttackPhase.BACKSWING
-            and self.ap >= BACKSWING_BAR
+            and self.ap >= BACKSWING_BAR + self.backswing_extra
         )
+
+    def apply_defender_damage_penalty(self, damage: float) -> None:
+        """守方受伤：按受伤值扣除当前AP"""
+        self.ap = max(0.0, self.ap - damage * DEFENDER_AP_LOSS_RATIO)
+
+    def apply_attacker_damage_penalty(self, damage: float) -> None:
+        """攻方受伤：延长本次后摇的AP阈值"""
+        self.backswing_extra = damage * ATTACKER_BACKSWING_LOSS_RATIO
 
     def reset_ap(self) -> None:
         """攻击后重置行动点数（兼容旧代码）"""
